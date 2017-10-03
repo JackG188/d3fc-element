@@ -1,12 +1,62 @@
 /* eslint-env browser */
 
-import * as data from './data';
-import redraw from './redraw';
+const key = '__d3fc-elements__';
 
-const getQueue = (element) => data.get(element.ownerDocument).queue || [];
+const get = (element) => element[key] || {};
+
+const set = (element, data) => void (element[key] = data);
+
+const clear = (element) => delete element[key];
+
+const find = (element) => element.tagName === 'D3FC-GROUP'
+? [element, ...element.querySelectorAll('d3fc-canvas, d3fc-group, d3fc-svg')]
+: [element];
+
+const measure = (element) => {
+  if (element.tagName === 'D3FC-GROUP') {
+      return;
+  }
+  const { width: previousWidth, height: previousHeight } = get(element);
+  const width = element.clientWidth;
+  const height = element.clientHeight;
+  const resized = width !== previousWidth || height !== previousHeight;
+  set(element, { width, height, resized });
+};
+
+const resize = (element) => {
+  if (element.tagName === 'D3FC-GROUP') {
+      return;
+  }
+  const detail = get(element);
+  const node = element.childNodes[0];
+  node.setAttribute('width', detail.width);
+  node.setAttribute('height', detail.height);
+  const event = new CustomEvent('measure', { detail });
+  element.dispatchEvent(event);
+};
+
+const draw = (element) => {
+  const detail = get(element);
+  const event = new CustomEvent('draw', { detail });
+  element.dispatchEvent(event);
+};
+
+const redraw = (elements) => {
+  const allElements = elements.map(find)
+    .reduce((a, b) => a.concat(b));
+  allElements.forEach(measure);
+  allElements.forEach(resize);
+  allElements.forEach(draw);
+};
+
+
+
+
+
+const getQueue = (element) => get(element.ownerDocument).queue || [];
 
 const setQueue = (element, queue) => {
-    let { requestId } = data.get(element.ownerDocument);
+    let { requestId } = get(element.ownerDocument);
     if (requestId == null) {
         requestId = requestAnimationFrame(() => {
             // This seems like a weak way of retrieving the queue
@@ -16,10 +66,10 @@ const setQueue = (element, queue) => {
             clearQueue(element);
         });
     }
-    data.set(element.ownerDocument, { queue, requestId });
+    set(element.ownerDocument, { queue, requestId });
 };
 
-const clearQueue = (element) => data.clear(element.ownerDocument);
+const clearQueue = (element) => clear(element.ownerDocument);
 
 const isDescendentOf = (element, ancestor) => {
     let node = element;
