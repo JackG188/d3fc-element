@@ -16,6 +16,7 @@
   "scripts": {
     "bundle": "d3fc-scripts bundle",
     "test": "eslint examples/**/*.js && d3fc-scripts test",
+    "dist": "distjs",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "devDependencies": {
@@ -27,6 +28,7 @@
   },
   "dependencies": {
     "d3-selection": "^1.0.2",
+    "distjs": "^1.0.0",
     "document-register-element": "^1.0.10"
   }
 }
