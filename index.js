@@ -1,5 +1,4 @@
 /* globals customElements */
-import 'document-register-element/build/document-register-element';
 import Canvas from './src/canvas';
 import Group from './src/group';
 import Svg from './src/svg';
